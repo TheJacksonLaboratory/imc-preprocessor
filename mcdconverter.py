@@ -75,13 +75,14 @@ class MCDConverter:
     def filter_stack(self, tmin, tmax, blur_rad):
         print(f"Filtiering acquisitions {tmin}%--{tmax}% with blur {blur_rad}")
         for ac_id, imc_ac in self.acquisitions.items():
+            offset = imc_ac._offset
             for k, (metal, label) in enumerate(
                 zip(imc_ac.channel_metals, imc_ac.channel_labels)
             ):
                 assert k == imc_ac._get_position(metal, imc_ac.channel_metals)
                 _img = imc_ac.get_img_by_metal(metal).copy()
                 _img_filt = self.filter_channel(_img, blur_rad, tmin, tmax)
-                imc_ac._data[k] = _img_filt
+                imc_ac._data[k + offset] = _img_filt
 
     def save_individual_tiffs(self, outpath):
         ind_format = "{prefix}.a{ac_id}.{metal}.{label}.ome.tiff"
