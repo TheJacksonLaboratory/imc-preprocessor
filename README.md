@@ -25,6 +25,50 @@ python app.py config path/to/prefix.mcd
 python app.py process prefix.yaml
 ```
 
+### Configuration format
+The global processing options are as follows:
+Path to the MCD file you're processing:
+```{yaml}
+mcdpath: /path/to/testing/prefix.mcd
+```
+
+Turn on/off the various processing steps:
+```{yaml}
+# true or false
+do_compensate: true
+do_equalization: true
+do_pixel_removal: true
+```
+
+Change the output formats of each step:
+```{yaml}
+# tiff, tiffstack, or imc
+compensate_output_type: imc 
+equalization_output_type: tiff
+pixel_removal_output_type: tiffstack
+```
+`tiff` will output individual tiffs (under their own folder), `tiffstack` will
+output a single stacked tiff, and `imc` will create an `IMCFolder` from
+`imctools`.
+
+Other options:
+```{yaml}
+# conway or tophat
+pixel_removal_method: conway
+```
+-   `conway` computes a binary mask and computes the number of nonzero neighbors
+    within a selem around each pixel.  If this number of nonzero neighbors is
+    less than a threshold, the pixel's value in this channel is set to zero.
+-   `tophat` creates a mask from `binary_image - white_tophat(binary_image,
+    selem)`.  Pixels masked this way will be set to zero.
+
+Additionally, each Acquisition lists its channels and the details for each
+channel.  This format allows you to change pixel removal thresholds on a
+per-channel, per-acquisition basis if you need that control.  Additionally, you
+can change the selem shape (default is a 3x3 square). **If you want to exclude an
+acquisition from processing, delete it and all its associated channels.**
+
+
 ## Installation
 ### Running from Python
 
