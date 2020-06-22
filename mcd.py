@@ -88,12 +88,16 @@ class MCD:
         print(f"IMC-Folder written to {str(outpath)}")
 
     def _write_tiff(self, suffix):
-        fmt = "{}{}.a{}.{}.{}.ome.tiff"
+        outpath = Path(self.fileprefix + suffix)
+        if not outpath.exists():
+            outpath.mkdir(exist_ok=True)
+
+        fmt = "{}/{}{}.a{}.{}.{}.ome.tiff"
         for ac_id, imc_ac in self.acquisitions.items():
             for k, (metal, label) in enumerate(
                 zip(imc_ac.channel_metals, imc_ac.channel_labels)
             ):
-                tiff = fmt.format(self.fileprefix, suffix, ac_id, metal, label)
+                tiff = fmt.format(outpath, self.fileprefix, suffix, ac_id, metal, label)
                 iw = imc_ac.get_image_writer(filename=str(tiff), metals=[metal])
                 iw.save_image(mode="ome", compression=0, dtype=None, bigtiff=False)
                 print(f"{tiff} saved.")

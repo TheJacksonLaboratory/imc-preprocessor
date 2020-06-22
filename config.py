@@ -96,7 +96,7 @@ def generate_options_from_mcd(mcd_file):
     mcd.peek()
 
     options = ProcessingOptions(
-        mcdpath=str(mcd_file),
+        mcdpath=str(mcd_file.resolve()),
         acquisitions=[
             Acquisition.from_mcd(mcd, ac_id)
             for ac_id in mcd.acquisition_ids
