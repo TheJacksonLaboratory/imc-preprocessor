@@ -12,23 +12,21 @@ from skimage.exposure import equalize_hist, equalize_adapthist
 
 from spillover import align_spillmat
 
+
 def cross(n):
-    s = 2*n + 1
+    s = 2 * n + 1
     sel = np.zeros((s, s), dtype=int)
     sel[:, n] = 1
     sel[n, :] = 1
     return sel
 
 
-selems = Namespace(
-    square=square, disk=disk,
-    cross=cross
-)    
+selems = Namespace(square=square, disk=disk, cross=cross)
 
 
 def conway(im, selem=disk(1), threshold=None):
     if threshold is None:
-        threshold = selem.sum()//2 + 1
+        threshold = selem.sum() // 2 + 1
 
     b = im.astype(bool).astype(int)
     m = convolve2d(b, selem, mode="same")
@@ -59,15 +57,19 @@ def compensate(img_stack, spillmat):
 
 def equalize(img_stack, adaptive=False):
     if adaptive:
-        equalized = np.array([
-            equalize_adapthist(img_stack[k,...], nbins=2**16, clip_limit=0.4)
-            for k in range(img_stack.shape[0])
-        ])
+        equalized = np.array(
+            [
+                equalize_adapthist(img_stack[k, ...], nbins=2 ** 16, clip_limit=0.4)
+                for k in range(img_stack.shape[0])
+            ]
+        )
     else:
-        equalized = np.array([
-            equalize_hist(img_stack[k,...], nbins=2**16)
-            for k in range(img_stack.shape[0])
-        ])
+        equalized = np.array(
+            [
+                equalize_hist(img_stack[k, ...], nbins=2 ** 16)
+                for k in range(img_stack.shape[0])
+            ]
+        )
     return equalized
 
 
@@ -99,7 +101,7 @@ def process(options):
                 ch_id = ch_opts.ch_id
                 ch = mcd.get_data(ac_id, ch_int=ch_id)
 
-                params = dict(selem = ch_opts.pixel_removal_selem)
+                params = dict(selem=ch_opts.pixel_removal_selem)
                 print(f". cleaning acquisition/channel {ac_id}/{ch_opts.metal}.")
                 if method == "conway":
                     params["threshold"] = ch_opts.pixel_removal_neighbors

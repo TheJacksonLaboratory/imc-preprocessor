@@ -41,7 +41,9 @@ class MCD:
         self.channel_metals = {}
         self.channel_labels = {}
         for ac_id in self.acquisition_ids:
-            metals, labels = list(zip(*self.mcd.get_acquisition_channels(ac_id).values()))
+            metals, labels = list(
+                zip(*self.mcd.get_acquisition_channels(ac_id).values())
+            )
             offset = len(metals) - len(set(metals) - set("XYZ"))
             self.offsets[ac_id] = offset
             self.channel_labels[ac_id] = labels[offset:]
@@ -49,7 +51,6 @@ class MCD:
             self.n_channels[ac_id] = len(metals[offset:])
         print("Peeking finished.")
 
-        
     def load_mcd(self):
         self.fileprefix = self.mcdpath.stem
         self.peek()

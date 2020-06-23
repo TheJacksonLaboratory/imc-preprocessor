@@ -15,7 +15,7 @@ from processing import selems
 
 
 def numpy_representer(dumper, data):
-    return dumper.represent_scalar(u'!array', repr(data.tolist()))
+    return dumper.represent_scalar(u"!array", repr(data.tolist()))
 
 
 def numpy_constructor(loader, node):
@@ -25,16 +25,17 @@ def numpy_constructor(loader, node):
 
 
 yaml.add_representer(np.ndarray, numpy_representer)
-yaml.add_constructor(u'!array', numpy_constructor)
+yaml.add_constructor(u"!array", numpy_constructor)
+
 
 @dataclass
 class Channel(yaml.YAMLObject):
     yaml_tag = "!Channel"
 
     ch_id: int
-    metal: str 
-    label: str 
-    pixel_removal_neighbors: int = 5 
+    metal: str
+    label: str
+    pixel_removal_neighbors: int = 5
     pixel_removal_selem: np.array = selems.square(3)
 
     def __repr__(self):
@@ -42,7 +43,8 @@ class Channel(yaml.YAMLObject):
             "{self.__class__.__name__}(id={self.ch_id}, metal={self.metal}, "
             "label={self.label}, pixel_removal_neighbors={self.pixel_removal_neighbors}, "
             "selem={self.pixel_removal_selem}"
-        ).format( self=self)
+        ).format(self=self)
+
 
 @dataclass
 class Acquisition(yaml.YAMLObject):
@@ -53,7 +55,9 @@ class Acquisition(yaml.YAMLObject):
     @classmethod
     def from_mcd(cls, mcd, ac_id):
         channels = []
-        for k, (chl, chm) in enumerate(zip(mcd.channel_labels[ac_id], mcd.channel_metals[ac_id])):
+        for k, (chl, chm) in enumerate(
+            zip(mcd.channel_labels[ac_id], mcd.channel_metals[ac_id])
+        ):
             channels.append(Channel(k, chm, chl))
         return cls(acquisition_id=ac_id, channels=channels)
 
@@ -70,12 +74,18 @@ class ProcessingOptions(yaml.YAMLObject):
     acquisitions: list = field(default_factory=list)
 
     do_compensate: bool = True
-    compensate_output_type: typing.Union[None, typing.Literal["tiff", "tiffstack", "imc"]] = None
+    compensate_output_type: typing.Union[
+        None, typing.Literal["tiff", "tiffstack", "imc"]
+    ] = None
     do_pixel_removal: bool = True
     pixel_removal_method: typing.Literal["conway", "tophat"] = "conway"
-    pixel_removal_output_type: typing.Union[None, typing.Literal["tiff", "tiffstack", "imc"]] = None
+    pixel_removal_output_type: typing.Union[
+        None, typing.Literal["tiff", "tiffstack", "imc"]
+    ] = None
     do_equalization: bool = True
-    equalization_output_type: typing.Union[None, typing.Literal["tiff", "tiffstack", "imc"]] = None
+    equalization_output_type: typing.Union[
+        None, typing.Literal["tiff", "tiffstack", "imc"]
+    ] = None
 
     def __repr__(self):
         return (
@@ -84,10 +94,16 @@ class ProcessingOptions(yaml.YAMLObject):
             "do_equalization=%r, equalization_output_type=%r, "
             "acquisitions=%r)"
         ) % (
-            self.__class__.__name__, str(self.mcdpath), self.do_compensate, self.compensate_output_type,
-            self.do_pixel_removal, self.pixel_removal_method, self.pixel_removal_output_type,
-            self.do_equalization, self.equalization_output_type,
-            self.acquisitions
+            self.__class__.__name__,
+            str(self.mcdpath),
+            self.do_compensate,
+            self.compensate_output_type,
+            self.do_pixel_removal,
+            self.pixel_removal_method,
+            self.pixel_removal_output_type,
+            self.do_equalization,
+            self.equalization_output_type,
+            self.acquisitions,
         )
 
 
@@ -98,12 +114,11 @@ def generate_options_from_mcd(mcd_file):
     options = ProcessingOptions(
         mcdpath=str(mcd_file.resolve()),
         acquisitions=[
-            Acquisition.from_mcd(mcd, ac_id)
-            for ac_id in mcd.acquisition_ids
+            Acquisition.from_mcd(mcd, ac_id) for ac_id in mcd.acquisition_ids
         ],
         compensate_output_type="tiff",
         pixel_removal_output_type="tiff",
-        equalization_output_type="tiff"
+        equalization_output_type="tiff",
     )
 
     return options
@@ -116,6 +131,6 @@ def load_config_file(config_path: Path) -> ProcessingOptions:
     return options
 
 
-def dump_config_file(options: ProcessingOptions, config_path:Path) -> None:
+def dump_config_file(options: ProcessingOptions, config_path: Path) -> None:
     with open(config_path, "w") as fout:
-        yaml.dump(options, fout)#, default_flow_style=False)
+        yaml.dump(options, fout)  # , default_flow_style=False)
