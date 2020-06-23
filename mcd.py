@@ -3,10 +3,6 @@
 
 from pathlib import Path
 
-import numpy as np
-from skimage.filters import gaussian
-from skimage.restoration import denoise_tv_chambolle
-from skimage.exposure import equalize_adapthist
 from imctools.io.mcdparser import McdParser
 from imctools.io.abstractparserbase import AcquisitionError
 from imctools.io.imcfolderwriter import ImcFolderWriter
