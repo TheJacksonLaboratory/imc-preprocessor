@@ -78,6 +78,7 @@ git clone
 cd imc-preprocessor
 conda create -n imcpp -f package-list.txt
 ```
+This package requires Python 3.8+ due to usage of `typing.Literal`.
 
 Then run:
 ```bash
