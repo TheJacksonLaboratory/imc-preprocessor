@@ -3,6 +3,8 @@
 
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
 from imctools.io.mcdparser import McdParser
 from imctools.io.abstractparserbase import AcquisitionError
 from imctools.io.imcfolderwriter import ImcFolderWriter
@@ -107,10 +109,40 @@ class MCD:
             iw.save_image(mode="ome", compression=0, dtype=None, bigtiff=False)
             print(f"{tiff} saved.")
 
+    def _write_text(self, suffix):
+        fmt = "{}{}.a{}.txt"
+        for ac_id, imc_ac in self.acquisitions.items():
+            print(f"Creating text data for acquisition {ac_id}...")
+            outfile = fmt.format(self.fileprefix, suffix, ac_id)
+            _n = imc_ac._data.shape[0]
+            data = imc_ac._data[:].reshape(_n, -1).T
+            data = np.hstack((np.zeros((data.shape[0], 3)), data))
+            size = data.nbytes
+            metals = [
+                f"{metal}({label})" for metal, label in
+                zip(imc_ac.channel_metals, imc_ac.channel_labels)
+            ]
+            data = pd.DataFrame(
+                data,
+                columns=["Start_push","End_push","Pushes_duration","X","Y","Z"] + metals
+            )
+            data = data.apply(pd.to_numeric, downcast="unsigned", errors="ignore")
+            print(f"Text data formatted. Saving {size//1024//1024}MB now. This may take a while...")
+            data.to_csv(
+                outfile, header=True, index=False, sep="\t"
+            )
+            print(f"{outfile} saved.")
+
     def save(self, output_format, suffix=""):
         save_funcs = {
             "imc": self._write_imcfolder,
             "tiff": self._write_tiff,
             "tiffstack": self._write_tiffstack,
+            "text": self._write_text,
         }
         save_funcs[output_format](suffix)
+
+if __name__ == "__main__":
+    mcd = MCD(Path("/Users/flynnb/projects/singlecell/ibc/imc/IMC0042.mcd"))
+    mcd.load_mcd()
+    mcd.save("text")

@@ -75,16 +75,16 @@ class ProcessingOptions(yaml.YAMLObject):
 
     do_compensate: bool = True
     compensate_output_type: typing.Union[
-        None, typing.Literal["tiff", "tiffstack", "imc"]
+        None, typing.Literal["tiff", "tiffstack", "imc", "text"]
     ] = None
     do_pixel_removal: bool = True
     pixel_removal_method: typing.Literal["conway", "tophat"] = "conway"
     pixel_removal_output_type: typing.Union[
-        None, typing.Literal["tiff", "tiffstack", "imc"]
+        None, typing.Literal["tiff", "tiffstack", "imc", "text"]
     ] = None
     do_equalization: bool = True
     equalization_output_type: typing.Union[
-        None, typing.Literal["tiff", "tiffstack", "imc"]
+        None, typing.Literal["tiff", "tiffstack", "imc", "text"]
     ] = None
 
     def __repr__(self):
