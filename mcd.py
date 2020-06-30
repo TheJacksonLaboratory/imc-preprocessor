@@ -118,18 +118,15 @@ class MCD:
             data = imc_ac._data[:].reshape(_n, -1).T
             size = data.nbytes
             metals = [
-                f"{metal}({label})" for metal, label in
-                zip(imc_ac.channel_metals, imc_ac.channel_labels)
+                f"{metal}({label})"
+                for metal, label in zip(imc_ac.channel_metals, imc_ac.channel_labels)
             ]
-            data = pd.DataFrame(
-                data,
-                columns=["X","Y","Z"] + metals
-            )
+            data = pd.DataFrame(data, columns=["X", "Y", "Z"] + metals)
             data = data.apply(pd.to_numeric, downcast="unsigned", errors="ignore")
-            print(f"Text data formatted. Saving {size//1024//1024}MB now. This may take a while...")
-            data.to_csv(
-                outfile, header=True, index=False, sep="\t"
+            print(
+                f"Text data formatted. Saving {size//1024//1024}MB now. This may take a while..."
             )
+            data.to_csv(outfile, header=True, index=False, sep="\t")
             print(f"{outfile} saved.")
 
     def save(self, output_format, suffix=""):
@@ -140,6 +137,7 @@ class MCD:
             "text": self._write_text,
         }
         save_funcs[output_format](suffix)
+
 
 if __name__ == "__main__":
     mcd = MCD(Path("/Users/flynnb/projects/singlecell/ibc/imc/IMC0042.mcd"))
