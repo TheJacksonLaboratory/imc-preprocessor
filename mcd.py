@@ -116,7 +116,6 @@ class MCD:
             outfile = fmt.format(self.fileprefix, suffix, ac_id)
             _n = imc_ac._data.shape[0]
             data = imc_ac._data[:].reshape(_n, -1).T
-            data = np.hstack((np.zeros((data.shape[0], 3)), data))
             size = data.nbytes
             metals = [
                 f"{metal}({label})" for metal, label in
@@ -124,7 +123,7 @@ class MCD:
             ]
             data = pd.DataFrame(
                 data,
-                columns=["Start_push","End_push","Pushes_duration","X","Y","Z"] + metals
+                columns=["X","Y","Z"] + metals
             )
             data = data.apply(pd.to_numeric, downcast="unsigned", errors="ignore")
             print(f"Text data formatted. Saving {size//1024//1024}MB now. This may take a while...")
