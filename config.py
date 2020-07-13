@@ -130,7 +130,11 @@ def load_config_file(config_path: Path) -> ProcessingOptions:
     options.mcdpath = Path(options.mcdpath)
     return options
 
+noalias_dumper = yaml.dumper.SafeDumper
+noalias_dumper.ignore_aliases = lambda self, data: True
 
 def dump_config_file(options: ProcessingOptions, config_path: Path) -> None:
+    # Taken the advice of the following to avoid aliases in the config document
+    # http://signal0.com/2013/02/06/disabling_aliases_in_pyyaml.html
     with open(config_path, "w") as fout:
-        yaml.dump(options, fout)  # , default_flow_style=False)
+        yaml.dump(options, fout, Dumper=noalias_dumper)
