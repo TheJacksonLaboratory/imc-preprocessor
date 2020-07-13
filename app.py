@@ -4,6 +4,7 @@
 import argparse
 from pathlib import Path
 
+from logger import logger
 from mcd import MCD
 from processing import *
 from config import *
@@ -38,19 +39,37 @@ def check_extension(choices):
 
 
 def construct_parser():
+    parent = argparse.ArgumentParser(add_help=False)
+    parent.add_argument("-v", "--verbose", action="store_true", help="Show verbose output/logging")
+
     parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(title="command", dest="command", required=True)
-    processer = subparsers.add_parser("process")
+    subparsers = parser.add_subparsers(
+            title="command",
+            dest="command",
+            required=True,
+            help="Generate a YAML config file or process an MCD/YAML file"
+    )
+    processer = subparsers.add_parser("process", parents=[parent])
     processer.add_argument(
-        "mcd_or_yaml", type=Path, action=check_extension({".mcd", ".yaml"})
+        "mcd_or_yaml", type=Path, action=check_extension({".mcd", ".yaml"}),
+        help="Path to .MCD or .YAML file for processing"
     )
     processer.set_defaults(run_func=run_process)
 
-    configer = subparsers.add_parser("config")
-    configer.add_argument("mcd", type=Path, action=check_extension({".mcd"}))
+    configer = subparsers.add_parser("config", parents=[parent])
+    configer.add_argument(
+        "mcd", type=Path, action=check_extension({".mcd"}),
+         help="Path to .MCD file"
+    )
+    configer.add_argument(
+        "-c", "--config-output", type=Path,
+        help="Optional custom filename/location to save .YAML config file"
+    )
     configer.set_defaults(run_func=run_config)
 
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.verbose:
+        logger.setLevel(10)
 
 
 def main():

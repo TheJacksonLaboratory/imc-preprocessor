@@ -10,6 +10,7 @@ from skimage.morphology import white_tophat
 from skimage.morphology import square, disk, diamond
 from skimage.exposure import equalize_hist, equalize_adapthist
 
+from logger import logger
 from spillover import align_spillmat
 
 
@@ -79,21 +80,21 @@ def process(options):
 
     # Do compensation
     if options.do_compensate:
-        print("Running compensation")
+        logger.info("Running compensation")
         for ac_options in options.acquisitions:
             ac_id = ac_options.acquisition_id
-            print(f". compensating acquisition {ac_id}.")
+            logger.debug(f". compensating acquisition {ac_id}.")
             spillmat = align_spillmat(mcd.channel_metals[ac_id])
             uncomp = mcd.get_data(ac_id)
             comp = compensate(uncomp, spillmat.values)
             mcd.set_data(comp, ac_id)
         if options.compensate_output_type:
-            print("Saving compensation results.")
+            logger.info("Saving compensation results.")
             mcd.save(options.compensate_output_type, suffix="-compensated")
 
     # Do pixel removal
     if options.do_pixel_removal:
-        print("Running pixel removal")
+        logger.info("Running pixel removal")
         method = options.pixel_removal_method
         for ac_options in options.acquisitions:
             ac_id = ac_options.acquisition_id
@@ -102,25 +103,25 @@ def process(options):
                 ch = mcd.get_data(ac_id, ch_int=ch_id)
 
                 params = dict(selem=ch_opts.pixel_removal_selem)
-                print(f". cleaning acquisition/channel {ac_id}/{ch_opts.metal}.")
+                logger.debug(f". cleaning acquisition/channel {ac_id}/{ch_opts.metal}.")
                 if method == "conway":
                     params["threshold"] = ch_opts.pixel_removal_neighbors
                 cleaned = eval(f"{method}(ch, **params)")
                 mcd.set_data(cleaned, ac_id, ch_int=ch_id)
 
         if options.pixel_removal_output_type:
-            print("Saving pixel removal results.")
+            logger.info("Saving pixel removal results.")
             mcd.save(options.pixel_removal_output_type, "-cleaned")
 
     # Do equalization
     if options.do_equalization:
-        print("Running equalization")
+        logger.info("Running equalization")
         for ac_options in options.acquisitions:
             ac_id = ac_options.acquisition_id
-            print(f". equalizing acquisition {ac_id}.")
+            logger.debug(f". equalizing acquisition {ac_id}.")
             unequalized = mcd.get_data(ac_id)
             equalized = equalize(unequalized, adaptive=False)
             mcd.set_data(equalized, ac_id)
         if options.equalization_output_type:
-            print("Saving equalization results.")
+            logger.info("Saving equalization results.")
             mcd.save(options.equalization_output_type, "-equalized")

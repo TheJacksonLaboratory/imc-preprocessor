@@ -9,6 +9,8 @@ from imctools.io.mcdparser import McdParser
 from imctools.io.abstractparserbase import AcquisitionError
 from imctools.io.imcfolderwriter import ImcFolderWriter
 
+from logger import logger
+
 
 class MCD:
     def __init__(self, mcdpath: Path):
@@ -25,18 +27,19 @@ class MCD:
         return imc_ac
 
     def load_acquisitions(self):
-        print("Loading acquisitions.  Make take some time...")
+        logger.debug("Loading acquisitions.  Make take some time...")
         for ac_id in self.mcd.acquisition_ids:
             imc_ac = self._get_acquisition(self.mcd, ac_id)
             if imc_ac is None:
                 continue
             self.acquisitions[ac_id] = imc_ac
-        print("Acqusitions loaded.")
+        logger.info("Acqusitions loaded.")
 
+    # TODO: ADD CHECK FOR EMPTY ACQUISITIONS
     def peek(self):
-        print(f"Peeking into MCD file {self.mcdpath}")
+        logger.info(f"Peeking into MCD file {self.mcdpath}")
         self.mcd = McdParser(str(self.mcdpath))
-        print("MCD loaded. Peeking started.")
+        logger.debug("MCD loaded. Peeking started.")
         self.acquisition_ids = self.mcd.acquisition_ids
         self.offsets = {}
         self.n_channels = {}
@@ -51,7 +54,7 @@ class MCD:
             self.channel_labels[ac_id] = labels[offset:]
             self.channel_metals[ac_id] = metals[offset:]
             self.n_channels[ac_id] = len(metals[offset:])
-        print("Peeking finished.")
+        logger.debug("Peeking finished.")
 
     def load_mcd(self):
         self.fileprefix = self.mcdpath.stem
@@ -84,8 +87,9 @@ class MCD:
         self.mcd.save_meta_xml(str(outpath))
         ifw = ImcFolderWriter(str(outpath), mcddata=self.mcd)
         ifw.write_imc_folder()
-        print(f"IMC-Folder written to {str(outpath)}")
+        logger.info(f"IMC-Folder written to {str(outpath)}")
 
+    # TODO: HAVE SAVE separate tiffs by ACQUISITION ID
     def _write_tiff(self, suffix):
         outpath = Path(self.fileprefix + suffix)
         if not outpath.exists():
@@ -99,7 +103,8 @@ class MCD:
                 tiff = fmt.format(outpath, self.fileprefix, suffix, ac_id, metal, label)
                 iw = imc_ac.get_image_writer(filename=str(tiff), metals=[metal])
                 iw.save_image(mode="ome", compression=0, dtype=None, bigtiff=False)
-                print(f"{tiff} saved.")
+                logger.debug(f"{tiff} saved.")
+        logger.info(f"All tiffs saved.")
 
     def _write_tiffstack(self, suffix):
         fmt = "{}{}.a{}.ome.tiff"
@@ -107,12 +112,13 @@ class MCD:
             tiff = fmt.format(self.fileprefix, suffix, ac_id)
             iw = imc_ac.get_image_writer(filename=str(tiff))
             iw.save_image(mode="ome", compression=0, dtype=None, bigtiff=False)
-            print(f"{tiff} saved.")
+            logger.debug(f"{tiff} saved.")
+        logger.info(f"All tiffstacks saved.")
 
     def _write_text(self, suffix):
         fmt = "{}{}.a{}.txt"
         for ac_id, imc_ac in self.acquisitions.items():
-            print(f"Creating text data for acquisition {ac_id}...")
+            logger.debug(f"Creating text data for acquisition {ac_id}...")
             outfile = fmt.format(self.fileprefix, suffix, ac_id)
             _n = imc_ac._data.shape[0]
             data = imc_ac._data[:].reshape(_n, -1).T
@@ -123,12 +129,14 @@ class MCD:
             ]
             data = pd.DataFrame(data, columns=["X", "Y", "Z"] + metals)
             data = data.apply(pd.to_numeric, downcast="unsigned", errors="ignore")
-            print(
+            logger.debug(
                 f"Text data formatted. Saving {size//1024//1024}MB now. This may take a while..."
             )
             data.to_csv(outfile, header=True, index=False, sep="\t")
-            print(f"{outfile} saved.")
+            logger.debug(f"{outfile} saved.")
+        logger.info(f"All text files saved.")
 
+    # TODO: HAVE THIS ACCEPT ACQUISITION/CHANNEL LIST FROM OPTIONS
     def save(self, output_format, suffix=""):
         save_funcs = {
             "imc": self._write_imcfolder,
