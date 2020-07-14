@@ -82,7 +82,9 @@ def process(options):
     if options.do_compensate:
         logger.info("Running compensation")
         if options.spillover_matrix_file:
-            logger.info(f"Using provided spillover matrix {options.spillover_matrix_file}")
+            logger.info(
+                f"Using provided spillover matrix {options.spillover_matrix_file}"
+            )
         spillmat_raw = load_spillmat(options.spillover_matrix_file)
 
         for ac_options in options.acquisitions:
@@ -96,7 +98,9 @@ def process(options):
         if options.compensate_output_type:
             logger.info("Saving compensation results.")
             acquisitions = options.export_acquisitions()
-            mcd.save(acquisitions, options.compensate_output_type, suffix="-compensated")
+            mcd.save(
+                acquisitions, options.compensate_output_type, suffix="-compensated"
+            )
 
     # Do pixel removal
     if options.do_pixel_removal:

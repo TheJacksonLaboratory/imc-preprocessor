@@ -55,7 +55,7 @@ class MCD:
             metals, labels = list(
                 zip(*self.mcd.get_acquisition_channels(ac_id).values())
             )
-            metals = [m.replace("(","").replace(")","") for m in metals]
+            metals = [m.replace("(", "").replace(")", "") for m in metals]
             offset = len(metals) - len(set(metals) - set("XYZ"))
             self.offsets[ac_id] = offset
             self.channel_labels[ac_id] = labels[offset:]

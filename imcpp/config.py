@@ -138,8 +138,10 @@ def load_config_file(config_path: Path) -> ProcessingOptions:
     options.mcdpath = Path(options.mcdpath)
     return options
 
+
 noalias_dumper = yaml.dumper.Dumper
 noalias_dumper.ignore_aliases = lambda self, data: True
+
 
 def dump_config_file(options: ProcessingOptions, config_path: Path) -> None:
     # Taken the advice of the following to avoid aliases in the config document

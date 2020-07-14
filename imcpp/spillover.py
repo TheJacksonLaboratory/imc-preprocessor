@@ -7,13 +7,13 @@ import pandas as pd
 import importlib.resources as import_res
 
 
-with import_res.path("imcpp.data","spillover.csv") as spillpath:
+with import_res.path("imcpp.data", "spillover.csv") as spillpath:
     SPILLMAT_CSV = Path(spillpath)
 
 
 def load_spillmat(infile=None):
     if not infile:
-        infile=SPILLMAT_CSV
+        infile = SPILLMAT_CSV
     return pd.read_csv(infile, index_col=0)
 
 
