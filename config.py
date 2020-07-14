@@ -70,7 +70,7 @@ class Acquisition(yaml.YAMLObject):
 @dataclass
 class ProcessingOptions(yaml.YAMLObject):
     yaml_tag = "!ConfigOptions"
-    mcdpath: str
+    mcdpath: Path
     acquisitions: list = field(default_factory=list)
 
     do_compensate: bool = True
@@ -118,7 +118,7 @@ def generate_options_from_mcd(mcd_file):
     mcd.peek()
 
     options = ProcessingOptions(
-        mcdpath=str(mcd_file.resolve()),
+        mcdpath=mcd_file.resolve(),
         acquisitions=[
             Acquisition.from_mcd(mcd, ac_id) for ac_id in mcd.acquisition_ids
         ],
