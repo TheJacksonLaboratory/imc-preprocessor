@@ -70,6 +70,7 @@ def construct_parser():
     args = parser.parse_args()
     if args.verbose:
         logger.setLevel(10)
+    return args
 
 
 def main():
