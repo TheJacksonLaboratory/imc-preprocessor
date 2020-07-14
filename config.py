@@ -35,7 +35,7 @@ class Channel(yaml.YAMLObject):
     ch_id: int
     metal: str
     label: str
-    pixel_removal_neighbors: int = 5
+    pixel_removal_neighbors: int = 3
     pixel_removal_selem: np.array = selems.square(3)
 
     def __repr__(self):
