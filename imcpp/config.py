@@ -70,7 +70,7 @@ class Acquisition(yaml.YAMLObject):
 @dataclass
 class ProcessingOptions(yaml.YAMLObject):
     yaml_tag = "!ConfigOptions"
-    mcdpath: Path
+    mcdpath: str
     acquisitions: list = field(default_factory=list)
 
     do_compensate: bool = True
@@ -86,16 +86,18 @@ class ProcessingOptions(yaml.YAMLObject):
     equalization_output_type: typing.Union[
         None, typing.Literal["tiff", "tiffstack", "imc", "text"]
     ] = None
+    spillover_matrix_file: typing.Union[None, str] = None
 
     def __repr__(self):
         return (
-            "%s(file=%r, do_compensate=%r, compensation_output_type=%r, "
+            "%s(file=%s, spillmat_file=%s, do_compensate=%r, compensation_output_type=%r, "
             "do_pixel_removal=%r, pixel_removal_method=%r, pixel_removal_output_type=%r, "
             "do_equalization=%r, equalization_output_type=%r, "
             "acquisitions=%r)"
         ) % (
             self.__class__.__name__,
-            str(self.mcdpath),
+            self.mcdpath,
+            self.spillover_matrix_file,
             self.do_compensate,
             self.compensate_output_type,
             self.do_pixel_removal,
@@ -118,7 +120,7 @@ def generate_options_from_mcd(mcd_file):
     mcd.peek()
 
     options = ProcessingOptions(
-        mcdpath=mcd_file.resolve(),
+        mcdpath=str(mcd_file.resolve()),
         acquisitions=[
             Acquisition.from_mcd(mcd, ac_id) for ac_id in mcd.acquisition_ids
         ],
@@ -136,7 +138,7 @@ def load_config_file(config_path: Path) -> ProcessingOptions:
     options.mcdpath = Path(options.mcdpath)
     return options
 
-noalias_dumper = yaml.dumper.SafeDumper
+noalias_dumper = yaml.dumper.Dumper
 noalias_dumper.ignore_aliases = lambda self, data: True
 
 def dump_config_file(options: ProcessingOptions, config_path: Path) -> None:

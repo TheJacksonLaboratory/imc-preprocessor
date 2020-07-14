@@ -12,8 +12,18 @@ from config import *
 
 def run_config(args):
     options = generate_options_from_mcd(args.mcd)
-    prefix = args.mcd.stem
-    dump_config_file(options, f"{prefix}.yaml")
+
+    if args.custom_spillmat:
+        options.spillover_matrix_file = args.custom_spillmat
+
+    if args.config_output:
+        outfile = args.config_output
+    else:
+        prefix = args.mcd.stem
+        outfile = f"{prefix.yaml}"
+
+    logger.info(f"Saving configuration file to {outfile}")
+    dump_config_file(options, outfile)
 
 
 def run_process(args):
@@ -21,6 +31,7 @@ def run_process(args):
     is_mcd = mcd_or_yaml.suffix.lower().endswith(".mcd")
     if is_mcd:
         options = generate_options_from_mcd(mcd_or_yaml)
+        options.mcdpath = Path(options.mcdpath)
     else:
         options = load_config_file(mcd_or_yaml)
     process(options)
@@ -64,6 +75,10 @@ def construct_parser():
     configer.add_argument(
         "-c", "--config-output", type=Path,
         help="Optional custom filename/location to save .YAML config file"
+    )
+    configer.add_argument(
+        "-s", "--custom-spillmat", default=None,
+        help="Path to custom spillover matrix CSV file"
     )
     configer.set_defaults(run_func=run_config)
 

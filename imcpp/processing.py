@@ -11,7 +11,7 @@ from skimage.morphology import square, disk, diamond
 from skimage.exposure import equalize_hist, equalize_adapthist
 
 from logger import logger
-from spillover import align_spillmat
+from spillover import align_spillmat, load_spillmat
 
 
 def cross(n):
@@ -81,13 +81,18 @@ def process(options):
     # Do compensation
     if options.do_compensate:
         logger.info("Running compensation")
+        if options.spillover_matrix_file:
+            logger.info(f"Using provided spillover matrix {options.spillover_matrix_file}")
+        spillmat_raw = load_spillmat(options.spillover_matrix_file)
+
         for ac_options in options.acquisitions:
             ac_id = ac_options.acquisition_id
             logger.debug(f". compensating acquisition {ac_id}.")
-            spillmat = align_spillmat(mcd.channel_metals[ac_id])
+            spillmat = align_spillmat(spillmat_raw, mcd.channel_metals[ac_id])
             uncomp = mcd.get_data(ac_id)
             comp = compensate(uncomp, spillmat.values)
             mcd.set_data(comp, ac_id)
+
         if options.compensate_output_type:
             logger.info("Saving compensation results.")
             acquisitions = options.export_acquisitions()
@@ -102,7 +107,6 @@ def process(options):
             for ch_opts in ac_options.channels:
                 ch_id = ch_opts.ch_id
                 ch = mcd.get_data(ac_id, ch_int=ch_id)
-
                 params = dict(selem=ch_opts.pixel_removal_selem)
                 logger.debug(f". cleaning acquisition/channel {ac_id}/{ch_opts.metal}.")
                 if method == "conway":

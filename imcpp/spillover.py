@@ -11,12 +11,13 @@ with import_res.path("imcpp.data","spillover.csv") as spillpath:
     SPILLMAT_CSV = Path(spillpath)
 
 
-def load_spillmat():
-    return pd.read_csv(SPILLMAT_CSV, index_col=0)
+def load_spillmat(infile=None):
+    if not infile:
+        infile=SPILLMAT_CSV
+    return pd.read_csv(infile, index_col=0)
 
 
-def align_spillmat(input_metals):
-    spillmat = load_spillmat()
+def align_spillmat(spillmat, input_metals):
 
     unique_metals = set(spillmat.index.union(spillmat.columns))
 

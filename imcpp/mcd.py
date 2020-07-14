@@ -55,6 +55,7 @@ class MCD:
             metals, labels = list(
                 zip(*self.mcd.get_acquisition_channels(ac_id).values())
             )
+            metals = [m.replace("(","").replace(")","") for m in metals]
             offset = len(metals) - len(set(metals) - set("XYZ"))
             self.offsets[ac_id] = offset
             self.channel_labels[ac_id] = labels[offset:]
@@ -101,16 +102,16 @@ class MCD:
         outpath = Path(self.fileprefix + suffix)
         if not outpath.exists():
             outpath.mkdir(exist_ok=True)
-        for ac_id in acqusitions.keys():
+        for ac_id in acquisitions.keys():
             subdir = outpath / f"{self.fileprefix}{suffix}.a{ac_id}"
             if not subdir.exists():
                 subdir.mkdir(exist_ok=True)
 
         fmt = "{0}/{1}{2}.a{3}/{1}{2}.a{3}.{4}.{5}.ome.tiff"
         for ac_id, channel_list in acquisitions.items():
+            imc_ac = self._get_acquisition(self.mcd, ac_id)
             for ch_id, metal, label in channel_list:
                 tiff = fmt.format(outpath, self.fileprefix, suffix, ac_id, metal, label)
-                imc_ac = self._get_acquisition(self.mcd, ac_id)
                 iw = imc_ac.get_image_writer(filename=str(tiff), metals=[metal])
                 iw.save_image(mode="ome", compression=0, dtype=None, bigtiff=False)
                 logger.debug(f"{tiff} saved.")
