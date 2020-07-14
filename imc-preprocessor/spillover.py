@@ -4,7 +4,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+#from pkg_resources import resource_filename, Requirement
+
+
 SPILLMAT_CSV = Path("./spillover.csv")
+#SPILLMAT_CSV = Path(resource_filename(
+#    Requirement.parse("imc-preprocessor"),
+#    "data/spillmat.csv"
+#))
 
 
 def load_spillmat():
