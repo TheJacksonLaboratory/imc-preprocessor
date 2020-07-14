@@ -90,13 +90,16 @@ class MCD:
         ifw.write_imc_folder()
         logger.info(f"IMC-Folder written to {str(outpath)}")
 
-    # TODO: HAVE SAVE separate tiffs by ACQUISITION ID
     def _write_tiff(self, acquisitions, suffix):
         outpath = Path(self.fileprefix + suffix)
         if not outpath.exists():
             outpath.mkdir(exist_ok=True)
+        for ac_id in acqusitions.keys():
+            subdir = outpath / f"{self.fileprefix}{suffix}.a{ac_id}"
+            if not subdir.exists():
+                subdir.mkdir(exist_ok=True)
 
-        fmt = "{}/{}{}.a{}.{}.{}.ome.tiff"
+        fmt = "{0}/{1}{2}.a{3}/{1}{2}.a{3}.{4}.{5}.ome.tiff"
         for ac_id, channel_list in acquisitions.items():
             for ch_id, metal, label in channel_list:
                 tiff = fmt.format(outpath, self.fileprefix, suffix, ac_id, metal, label)
