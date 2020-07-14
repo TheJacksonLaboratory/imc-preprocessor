@@ -40,12 +40,18 @@ class MCD:
         logger.info(f"Peeking into MCD file {self.mcdpath}")
         self.mcd = McdParser(str(self.mcdpath))
         logger.debug("MCD loaded. Peeking started.")
-        self.acquisition_ids = self.mcd.acquisition_ids
+        acquisition_ids = self.mcd.acquisition_ids
+        self.acquisition_ids = []
         self.offsets = {}
         self.n_channels = {}
         self.channel_metals = {}
         self.channel_labels = {}
-        for ac_id in self.acquisition_ids:
+        for ac_id in acquisition_ids:
+            ac = self.mcd.meta.get_acquisitions()[ac_id]
+            if ac.data_offset_end - ac.data_offset_start < 1e5:
+                logger.warn(f"Acquisition {ac_id} appears empty.  Skipping.")
+                continue
+
             metals, labels = list(
                 zip(*self.mcd.get_acquisition_channels(ac_id).values())
             )
@@ -54,6 +60,7 @@ class MCD:
             self.channel_labels[ac_id] = labels[offset:]
             self.channel_metals[ac_id] = metals[offset:]
             self.n_channels[ac_id] = len(metals[offset:])
+            self.acquisition_ids.append(ac_id)
         logger.debug("Peeking finished.")
 
     def load_mcd(self):
