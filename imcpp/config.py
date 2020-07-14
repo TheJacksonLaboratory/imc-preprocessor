@@ -35,7 +35,7 @@ class Channel(yaml.YAMLObject):
     ch_id: int
     metal: str
     label: str
-    pixel_removal_neighbors: int = 5
+    pixel_removal_neighbors: int = 3
     pixel_removal_selem: np.array = selems.square(3)
 
     def __repr__(self):
@@ -86,16 +86,18 @@ class ProcessingOptions(yaml.YAMLObject):
     equalization_output_type: typing.Union[
         None, typing.Literal["tiff", "tiffstack", "imc", "text"]
     ] = None
+    spillover_matrix_file: typing.Union[None, str] = None
 
     def __repr__(self):
         return (
-            "%s(file=%r, do_compensate=%r, compensation_output_type=%r, "
+            "%s(file=%s, spillmat_file=%s, do_compensate=%r, compensation_output_type=%r, "
             "do_pixel_removal=%r, pixel_removal_method=%r, pixel_removal_output_type=%r, "
             "do_equalization=%r, equalization_output_type=%r, "
             "acquisitions=%r)"
         ) % (
             self.__class__.__name__,
-            str(self.mcdpath),
+            self.mcdpath,
+            self.spillover_matrix_file,
             self.do_compensate,
             self.compensate_output_type,
             self.do_pixel_removal,
@@ -104,6 +106,12 @@ class ProcessingOptions(yaml.YAMLObject):
             self.do_equalization,
             self.equalization_output_type,
             self.acquisitions,
+        )
+
+    def export_acquisitions(self):
+        return dict(
+            (ac.acquisition_id, [(ch.ch_id, ch.metal, ch.label) for ch in ac.channels])
+            for ac in self.acquisitions
         )
 
 
@@ -131,6 +139,12 @@ def load_config_file(config_path: Path) -> ProcessingOptions:
     return options
 
 
+noalias_dumper = yaml.dumper.Dumper
+noalias_dumper.ignore_aliases = lambda self, data: True
+
+
 def dump_config_file(options: ProcessingOptions, config_path: Path) -> None:
+    # Taken the advice of the following to avoid aliases in the config document
+    # http://signal0.com/2013/02/06/disabling_aliases_in_pyyaml.html
     with open(config_path, "w") as fout:
-        yaml.dump(options, fout)  # , default_flow_style=False)
+        yaml.dump(options, fout, Dumper=noalias_dumper)

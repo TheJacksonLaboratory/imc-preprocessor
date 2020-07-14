@@ -4,15 +4,20 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-SPILLMAT_CSV = Path("./spillover.csv")
+import importlib.resources as import_res
 
 
-def load_spillmat():
-    return pd.read_csv(SPILLMAT_CSV, index_col=0)
+with import_res.path("imcpp.data", "spillover.csv") as spillpath:
+    SPILLMAT_CSV = Path(spillpath)
 
 
-def align_spillmat(input_metals):
-    spillmat = load_spillmat()
+def load_spillmat(infile=None):
+    if not infile:
+        infile = SPILLMAT_CSV
+    return pd.read_csv(infile, index_col=0)
+
+
+def align_spillmat(spillmat, input_metals):
 
     unique_metals = set(spillmat.index.union(spillmat.columns))
 
