@@ -15,17 +15,23 @@ documentation = "https://github.com/TheJacksonLaboratory/imc-preprocessor"
 keywords = ["IMC", "imaging mass cytometry"]
 
 classifiers = [
-    ""
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3.8",
+    "Topic :: Scientific/Engineering :: Bio-Informatics"
 ]
 
-[dependencies]
-numpy = "^1.0"
-scipy = "^1.0"
-scikit-image = "^1.0"
-
-[dev-dependencies]
-black
+[tool.flit.metadata]
+module = "imcpp"
+author = "Bill Flynn"
+author-email = "bill.flynn@jax.org"
+requires = [
+    "pandas>=1.0.5",
+    "pyyaml>=5.3.1",
+    "scikit-image>=0.17.2",
+    "scipy>=1.4.1",
+    "numpy>=1.18.5",
+]
 
 [build-system]
-requires = ["setuptools >= 40.6.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
