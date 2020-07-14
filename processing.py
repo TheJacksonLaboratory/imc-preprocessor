@@ -124,4 +124,5 @@ def process(options):
             mcd.set_data(equalized, ac_id)
         if options.equalization_output_type:
             logger.info("Saving equalization results.")
-            mcd.save(options.equalization_output_type, "-equalized")
+            acquisitions = options.export_acquisitions()
+            mcd.save(acquisitions, options.equalization_output_type, "-equalized")

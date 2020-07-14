@@ -33,7 +33,7 @@ class MCD:
             if imc_ac is None:
                 continue
             self.acquisitions[ac_id] = imc_ac
-        logger.info("Acqusitions loaded.")
+        logger.info("Acquisitions loaded.")
 
     # TODO: ADD CHECK FOR EMPTY ACQUISITIONS
     def peek(self):
@@ -79,7 +79,8 @@ class MCD:
             assert len(new_data.shape) == 3
             imc_ac._data[offset:] = new_data
 
-    def _write_imcfolder(self, suffix):
+    def _write_imcfolder(self, acquisitions, suffix):
+        # TODO:This doesn't utilize acquisitions yet
         outpath = Path(self.fileprefix + suffix)
         if not outpath.exists():
             outpath.mkdir(exist_ok=True)
@@ -90,43 +91,45 @@ class MCD:
         logger.info(f"IMC-Folder written to {str(outpath)}")
 
     # TODO: HAVE SAVE separate tiffs by ACQUISITION ID
-    def _write_tiff(self, suffix):
+    def _write_tiff(self, acquisitions, suffix):
         outpath = Path(self.fileprefix + suffix)
         if not outpath.exists():
             outpath.mkdir(exist_ok=True)
 
         fmt = "{}/{}{}.a{}.{}.{}.ome.tiff"
-        for ac_id, imc_ac in self.acquisitions.items():
-            for k, (metal, label) in enumerate(
-                zip(imc_ac.channel_metals, imc_ac.channel_labels)
-            ):
+        for ac_id, channel_list in acquisitions.items():
+            for ch_id, metal, label in channel_list:
                 tiff = fmt.format(outpath, self.fileprefix, suffix, ac_id, metal, label)
+                imc_ac = self._get_acquisition(self.mcd, ac_id)
                 iw = imc_ac.get_image_writer(filename=str(tiff), metals=[metal])
                 iw.save_image(mode="ome", compression=0, dtype=None, bigtiff=False)
                 logger.debug(f"{tiff} saved.")
         logger.info(f"All tiffs saved.")
 
-    def _write_tiffstack(self, suffix):
+    def _write_tiffstack(self, acquisitions, suffix):
         fmt = "{}{}.a{}.ome.tiff"
-        for ac_id, imc_ac in self.acquisitions.items():
+        for ac_id in acquisitions.keys():
             tiff = fmt.format(self.fileprefix, suffix, ac_id)
+            imc_ac = self._get_acquisition(self.mcd, ac_id)
             iw = imc_ac.get_image_writer(filename=str(tiff))
             iw.save_image(mode="ome", compression=0, dtype=None, bigtiff=False)
             logger.debug(f"{tiff} saved.")
         logger.info(f"All tiffstacks saved.")
 
-    def _write_text(self, suffix):
+    def _write_text(self, acquisitions, suffix):
         fmt = "{}{}.a{}.txt"
-        for ac_id, imc_ac in self.acquisitions.items():
+        for ac_id, channel_list in acquisitions.items():
             logger.debug(f"Creating text data for acquisition {ac_id}...")
             outfile = fmt.format(self.fileprefix, suffix, ac_id)
-            _n = imc_ac._data.shape[0]
-            data = imc_ac._data[:].reshape(_n, -1).T
+
+            ch_ids, ch_metals, ch_labels = zip(*channel_list)
+
+            data = self.get_data(ac_id)[ch_ids]
+            _n = data.shape[0]
+            data = data[:].reshape(_n, -1).T
             size = data.nbytes
-            metals = [
-                f"{metal}({label})"
-                for metal, label in zip(imc_ac.channel_metals, imc_ac.channel_labels)
-            ]
+
+            metals = [f"{metal}({label})" for _, metal, label in channel_list]
             data = pd.DataFrame(data, columns=["X", "Y", "Z"] + metals)
             data = data.apply(pd.to_numeric, downcast="unsigned", errors="ignore")
             logger.debug(
@@ -136,15 +139,14 @@ class MCD:
             logger.debug(f"{outfile} saved.")
         logger.info(f"All text files saved.")
 
-    # TODO: HAVE THIS ACCEPT ACQUISITION/CHANNEL LIST FROM OPTIONS
-    def save(self, output_format, suffix=""):
+    def save(self, acquisitions, output_format, suffix=""):
         save_funcs = {
             "imc": self._write_imcfolder,
             "tiff": self._write_tiff,
             "tiffstack": self._write_tiffstack,
             "text": self._write_text,
         }
-        save_funcs[output_format](suffix)
+        save_funcs[output_format](acquisitions, suffix)
 
 
 if __name__ == "__main__":

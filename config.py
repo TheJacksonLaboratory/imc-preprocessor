@@ -106,6 +106,12 @@ class ProcessingOptions(yaml.YAMLObject):
             self.acquisitions,
         )
 
+    def export_acquisitions(self):
+        return dict(
+            (ac.acquisition_id, [(ch.ch_id, ch.metal, ch.label) for ch in ac.channels])
+            for ac in self.acquisitions
+        )
+
 
 def generate_options_from_mcd(mcd_file):
     mcd = MCD(mcd_file)
