@@ -1,0 +1,31 @@
+[project]
+name = "imc-preprocessor"
+version = "0.1.0"
+description = "Preprocessing tool for Imaging Mass Cytometry assays"
+authors = [
+    "Bill Flynn <bill.flynn@jax.org>"
+]
+license = "MIT"
+readme = "README.md"
+python = "^3.8"
+homepage = "https://github.com/TheJacksonLaboratory/imc-preprocessor"
+repository = "https://github.com/TheJacksonLaboratory/imc-preprocessor"
+documentation = "https://github.com/TheJacksonLaboratory/imc-preprocessor"
+
+keywords = ["IMC", "imaging mass cytometry"]
+
+classifiers = [
+    ""
+]
+
+[dependencies]
+numpy = "^1.0"
+scipy = "^1.0"
+scikit-image = "^1.0"
+
+[dev-dependencies]
+black
+
+[build-system]
+requires = ["setuptools >= 40.6.0", "wheel"]
+build-backend = "setuptools.build_meta"
