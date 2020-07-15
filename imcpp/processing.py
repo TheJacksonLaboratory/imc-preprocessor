@@ -81,6 +81,11 @@ def process(options):
     # Do compensation
     if options.do_compensate:
         logger.info("Running compensation")
+        logger.debug(
+            "Note that all channels of the aquisition to be utilized during the "
+            "compensation calculation but only those specified in the config "
+            "file will be saved."
+        )
         if options.spillover_matrix_file:
             logger.info(
                 f"Using provided spillover matrix {options.spillover_matrix_file}"
@@ -118,6 +123,7 @@ def process(options):
                 logger.debug(f". cleaning acquisition/channel {ac_id}/{ch_opts.metal}.")
                 if method == "conway":
                     params["threshold"] = ch_opts.pixel_removal_neighbors
+                logger.debug(f"Running {method}(ch, **params)")
                 cleaned = eval(f"{method}(ch, **params)")
                 mcd.set_data(cleaned, ac_id, ch_int=ch_id)
 

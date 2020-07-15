@@ -33,11 +33,11 @@ class MCD:
             if imc_ac is None:
                 continue
             self.acquisitions[ac_id] = imc_ac
-        logger.info("Acquisitions loaded.")
+        logger.info(f"{len(self.acquisitions)} acquisitions loaded.")
 
-    # TODO: ADD CHECK FOR EMPTY ACQUISITIONS
     def peek(self):
-        logger.info(f"Peeking into MCD file {self.mcdpath}")
+        logger.info(f"Going to peek inside MCD file {self.mcdpath}")
+        logger.debug("Loading MCD.")
         self.mcd = McdParser(str(self.mcdpath))
         logger.debug("MCD loaded. Peeking started.")
         acquisition_ids = self.mcd.acquisition_ids
@@ -86,6 +86,7 @@ class MCD:
             imc_ac._data[offset:] = new_data
 
     def _write_imcfolder(self, acquisitions, prefix, suffix):
+        logger.debug(f"Saving IMCfolder with prefix:[{prefix}] and suffix:[{suffix}]")
         # TODO:This doesn't utilize acquisitions yet
         outpath = Path(prefix + suffix)
         if not outpath.exists():
@@ -97,6 +98,7 @@ class MCD:
         logger.info(f"IMC-Folder written to {str(outpath)}")
 
     def _write_tiff(self, acquisitions, prefix, suffix):
+        logger.debug(f"Saving tiffs with prefix:[{prefix}] and suffix:[{suffix}]")
         outpath = Path(prefix + suffix)
         if not outpath.exists():
             outpath.mkdir(exist_ok=True)
@@ -116,6 +118,7 @@ class MCD:
         logger.info(f"All tiffs saved.")
 
     def _write_tiffstack(self, acquisitions, prefix, suffix):
+        logger.debug(f"Saving tiffstack with prefix:[{prefix}] and suffix:[{suffix}]")
         fmt = "{}{}.a{}.ome.tiff"
         for ac_id in acquisitions.keys():
             tiff = fmt.format(prefix, suffix, ac_id)
@@ -126,6 +129,7 @@ class MCD:
         logger.info(f"All tiffstacks saved.")
 
     def _write_text(self, acquisitions, prefix, suffix):
+        logger.debug(f"Saving text data with prefix:[{prefix}] and suffix:[{suffix}]")
         fmt = "{}{}.a{}.txt"
         for ac_id, channel_list in acquisitions.items():
             logger.debug(f"Creating text data for acquisition {ac_id}...")
