@@ -13,9 +13,6 @@ from config import *
 def run_config(args):
     options = generate_options_from_mcd(args.mcd)
 
-    if args.custom_spillmat:
-        options.spillover_matrix_file = args.custom_spillmat
-
     if args.config_output:
         outfile = args.config_output
     else:
@@ -79,12 +76,6 @@ def construct_parser():
         "--config-output",
         type=Path,
         help="Optional custom filename/location to save .YAML config file",
-    )
-    configer.add_argument(
-        "-s",
-        "--custom-spillmat",
-        default=None,
-        help="Path to custom spillover matrix CSV file",
     )
     configer.set_defaults(run_func=run_config)
 
