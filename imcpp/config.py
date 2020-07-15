@@ -15,7 +15,7 @@ from processing import selems
 
 
 def numpy_representer(dumper, data):
-    return dumper.represent_scalar(u"!array", repr(data.tolist()))
+    return dumper.represent_scalar("!array", repr(data.tolist()))
 
 
 def numpy_constructor(loader, node):
@@ -25,7 +25,7 @@ def numpy_constructor(loader, node):
 
 
 yaml.add_representer(np.ndarray, numpy_representer)
-yaml.add_constructor(u"!array", numpy_constructor)
+yaml.add_constructor("!array", numpy_constructor)
 
 
 @dataclass
@@ -71,40 +71,49 @@ class Acquisition(yaml.YAMLObject):
 class ProcessingOptions(yaml.YAMLObject):
     yaml_tag = "!ConfigOptions"
     mcdpath: str
+    output_prefix: str
     acquisitions: list = field(default_factory=list)
 
     do_compensate: bool = True
     compensate_output_type: typing.Union[
         None, typing.Literal["tiff", "tiffstack", "imc", "text"]
     ] = None
+    compensate_output_suffix: typing.Union[None, str] = "-compensated"
     do_pixel_removal: bool = True
     pixel_removal_method: typing.Literal["conway", "tophat"] = "conway"
     pixel_removal_output_type: typing.Union[
         None, typing.Literal["tiff", "tiffstack", "imc", "text"]
     ] = None
+    pixel_removal_output_suffix: typing.Union[None, str] = "-cleaned"
     do_equalization: bool = True
     equalization_output_type: typing.Union[
         None, typing.Literal["tiff", "tiffstack", "imc", "text"]
     ] = None
+    equalization_output_suffix: typing.Union[None, str] = "-equalized"
     spillover_matrix_file: typing.Union[None, str] = None
 
     def __repr__(self):
         return (
-            "%s(file=%s, spillmat_file=%s, do_compensate=%r, compensation_output_type=%r, "
-            "do_pixel_removal=%r, pixel_removal_method=%r, pixel_removal_output_type=%r, "
-            "do_equalization=%r, equalization_output_type=%r, "
-            "acquisitions=%r)"
+            "%s(file=%s, output_prefix=%s, spillmat_file=%s, "
+            "do_compensate=%r, do_pixel_removal=%r, do_equalization=%r, "
+            "compensation_output_type=%r, pixel_removal_output_type=%r, equalization_output_type=%r, "
+            "compensation_output_suffix=%r, pixel_removal_output_suffix=%r, equalization_output_suffix=%r, "
+            "pixel_removal_method=%r, acquisitions=%r)"
         ) % (
             self.__class__.__name__,
             self.mcdpath,
+            self.output_prefix,
             self.spillover_matrix_file,
             self.do_compensate,
-            self.compensate_output_type,
             self.do_pixel_removal,
-            self.pixel_removal_method,
-            self.pixel_removal_output_type,
             self.do_equalization,
+            self.compensate_output_type,
+            self.pixel_removal_output_type,
             self.equalization_output_type,
+            self.compensate_output_suffix,
+            self.pixel_removal_output_suffix,
+            self.equalization_output_suffix,
+            self.pixel_removal_method,
             self.acquisitions,
         )
 
@@ -121,9 +130,8 @@ def generate_options_from_mcd(mcd_file):
 
     options = ProcessingOptions(
         mcdpath=str(mcd_file.resolve()),
-        acquisitions=[
-            Acquisition.from_mcd(mcd, ac_id) for ac_id in mcd.acquisition_ids
-        ],
+        output_prefix=mcd_file.resolve().stem,
+        acquisitions=[Acquisition.from_mcd(mcd, ac_id) for ac_id in mcd.acquisition_ids],
         compensate_output_type="tiff",
         pixel_removal_output_type="tiff",
         equalization_output_type="tiff",

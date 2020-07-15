@@ -99,7 +99,10 @@ def process(options):
             logger.info("Saving compensation results.")
             acquisitions = options.export_acquisitions()
             mcd.save(
-                acquisitions, options.compensate_output_type, suffix="-compensated"
+                acquisitions,
+                options.compensate_output_type,
+                prefix=options.output_prefix,
+                suffix=options.compensate_output_suffix,
             )
 
     # Do pixel removal
@@ -121,7 +124,12 @@ def process(options):
         if options.pixel_removal_output_type:
             logger.info("Saving pixel removal results.")
             acquisitions = options.export_acquisitions()
-            mcd.save(acquisitions, options.pixel_removal_output_type, "-cleaned")
+            mcd.save(
+                acquisitions,
+                options.pixel_removal_output_type,
+                prefix=options.output_prefix,
+                suffix=options.pixel_removal_output_suffix,
+            )
 
     # Do equalization
     if options.do_equalization:
@@ -135,4 +143,9 @@ def process(options):
         if options.equalization_output_type:
             logger.info("Saving equalization results.")
             acquisitions = options.export_acquisitions()
-            mcd.save(acquisitions, options.equalization_output_type, "-equalized")
+            mcd.save(
+                acquisitions,
+                options.equalization_output_type,
+                prefix=options.output_prefix,
+                suffix=options.equalization_output_suffix,
+            )

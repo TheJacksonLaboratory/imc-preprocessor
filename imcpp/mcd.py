@@ -52,9 +52,7 @@ class MCD:
                 logger.warn(f"Acquisition {ac_id} appears empty.  Skipping.")
                 continue
 
-            metals, labels = list(
-                zip(*self.mcd.get_acquisition_channels(ac_id).values())
-            )
+            metals, labels = list(zip(*self.mcd.get_acquisition_channels(ac_id).values()))
             metals = [m.replace("(", "").replace(")", "") for m in metals]
             offset = len(metals) - len(set(metals) - set("XYZ"))
             self.offsets[ac_id] = offset
@@ -87,9 +85,9 @@ class MCD:
             assert len(new_data.shape) == 3
             imc_ac._data[offset:] = new_data
 
-    def _write_imcfolder(self, acquisitions, suffix):
+    def _write_imcfolder(self, acquisitions, prefix, suffix):
         # TODO:This doesn't utilize acquisitions yet
-        outpath = Path(self.fileprefix + suffix)
+        outpath = Path(prefix + suffix)
         if not outpath.exists():
             outpath.mkdir(exist_ok=True)
 
@@ -98,12 +96,12 @@ class MCD:
         ifw.write_imc_folder()
         logger.info(f"IMC-Folder written to {str(outpath)}")
 
-    def _write_tiff(self, acquisitions, suffix):
-        outpath = Path(self.fileprefix + suffix)
+    def _write_tiff(self, acquisitions, prefix, suffix):
+        outpath = Path(self.prefix + suffix)
         if not outpath.exists():
             outpath.mkdir(exist_ok=True)
         for ac_id in acquisitions.keys():
-            subdir = outpath / f"{self.fileprefix}{suffix}.a{ac_id}"
+            subdir = outpath / f"{prefix}{suffix}.a{ac_id}"
             if not subdir.exists():
                 subdir.mkdir(exist_ok=True)
 
@@ -111,27 +109,27 @@ class MCD:
         for ac_id, channel_list in acquisitions.items():
             imc_ac = self._get_acquisition(self.mcd, ac_id)
             for ch_id, metal, label in channel_list:
-                tiff = fmt.format(outpath, self.fileprefix, suffix, ac_id, metal, label)
+                tiff = fmt.format(outpath, prefix, suffix, ac_id, metal, label)
                 iw = imc_ac.get_image_writer(filename=str(tiff), metals=[metal])
                 iw.save_image(mode="ome", compression=0, dtype=None, bigtiff=False)
                 logger.debug(f"{tiff} saved.")
         logger.info(f"All tiffs saved.")
 
-    def _write_tiffstack(self, acquisitions, suffix):
+    def _write_tiffstack(self, acquisitions, prefix, suffix):
         fmt = "{}{}.a{}.ome.tiff"
         for ac_id in acquisitions.keys():
-            tiff = fmt.format(self.fileprefix, suffix, ac_id)
+            tiff = fmt.format(prefix, suffix, ac_id)
             imc_ac = self._get_acquisition(self.mcd, ac_id)
             iw = imc_ac.get_image_writer(filename=str(tiff))
             iw.save_image(mode="ome", compression=0, dtype=None, bigtiff=False)
             logger.debug(f"{tiff} saved.")
         logger.info(f"All tiffstacks saved.")
 
-    def _write_text(self, acquisitions, suffix):
+    def _write_text(self, acquisitions, prefix, suffix):
         fmt = "{}{}.a{}.txt"
         for ac_id, channel_list in acquisitions.items():
             logger.debug(f"Creating text data for acquisition {ac_id}...")
-            outfile = fmt.format(self.fileprefix, suffix, ac_id)
+            outfile = fmt.format(prefix, suffix, ac_id)
 
             ch_ids, ch_metals, ch_labels = zip(*channel_list)
 
@@ -150,14 +148,16 @@ class MCD:
             logger.debug(f"{outfile} saved.")
         logger.info(f"All text files saved.")
 
-    def save(self, acquisitions, output_format, suffix=""):
+    def save(self, acquisitions, output_format, prefix="", suffix=""):
         save_funcs = {
             "imc": self._write_imcfolder,
             "tiff": self._write_tiff,
             "tiffstack": self._write_tiffstack,
             "text": self._write_text,
         }
-        save_funcs[output_format](acquisitions, suffix)
+        if not prefix:
+            prefix = self.fileprefix
+        save_funcs[output_format](acquisitions, prefix, suffix)
 
 
 if __name__ == "__main__":

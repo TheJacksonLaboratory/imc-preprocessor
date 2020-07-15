@@ -19,8 +19,7 @@ def run_config(args):
     if args.config_output:
         outfile = args.config_output
     else:
-        prefix = args.mcd.stem
-        outfile = f"{prefix.yaml}"
+        outfile = f"{options.output_prefix}.yaml"
 
     logger.info(f"Saving configuration file to {outfile}")
     dump_config_file(options, outfile)
