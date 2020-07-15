@@ -8,7 +8,7 @@ import importlib.resources as import_res
 
 
 with import_res.path("imcpp.data", "spillover.csv") as spillpath:
-    SPILLMAT_CSV = Path(spillpath)
+    SPILLMAT_CSV = spillpath
 
 
 def load_spillmat(infile=None):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from mcd import MCD
+from .mcd import MCD
 
 import numpy as np
 from argparse import Namespace
@@ -10,8 +10,8 @@ from skimage.morphology import white_tophat
 from skimage.morphology import square, disk, diamond
 from skimage.exposure import equalize_hist, equalize_adapthist
 
-from logger import logger
-from spillover import align_spillmat, load_spillmat
+from .logger import logger
+from .spillover import align_spillmat, load_spillmat
 
 
 def cross(n):
@@ -57,19 +57,29 @@ def compensate(img_stack, spillmat):
 
 
 def equalize(img_stack, adaptive=False):
+    L = img_stack.shape[0]
+
+    logger.debug("5th and 95th percentile before equalization")
+    logger.debug(
+        np.column_stack(
+            (
+                np.arange(1, L + 1),
+                np.percentile(img_stack, 5, axis=(1, 2)),
+                np.percentile(img_stack, 95, axis=(1, 2)),
+            )
+        )
+    )
+
     if adaptive:
         equalized = np.array(
             [
                 equalize_adapthist(img_stack[k, ...], nbins=2 ** 16, clip_limit=0.4)
-                for k in range(img_stack.shape[0])
+                for k in range(L)
             ]
         )
     else:
         equalized = np.array(
-            [
-                equalize_hist(img_stack[k, ...], nbins=2 ** 16)
-                for k in range(img_stack.shape[0])
-            ]
+            [equalize_hist(img_stack[k, ...], nbins=2 ** 16) for k in range(L)]
         )
     return equalized
 

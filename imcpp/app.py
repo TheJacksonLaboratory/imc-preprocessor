@@ -4,10 +4,10 @@
 import argparse
 from pathlib import Path
 
-from logger import logger
-from mcd import MCD
-from processing import *
-from config import *
+from .logger import logger
+from .mcd import MCD
+from .processing import *
+from .config import *
 
 
 def run_config(args):

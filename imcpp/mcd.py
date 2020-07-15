@@ -9,7 +9,7 @@ from imctools.io.mcdparser import McdParser
 from imctools.io.abstractparserbase import AcquisitionError
 from imctools.io.imcfolderwriter import ImcFolderWriter
 
-from logger import logger
+from .logger import logger
 
 
 class MCD:

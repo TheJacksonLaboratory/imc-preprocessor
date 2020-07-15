@@ -10,8 +10,8 @@ from ast import literal_eval
 
 import numpy as np
 
-from mcd import MCD
-from processing import selems
+from .mcd import MCD
+from .processing import selems
 
 
 def numpy_representer(dumper, data):
