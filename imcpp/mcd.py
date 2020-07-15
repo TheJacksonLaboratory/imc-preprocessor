@@ -97,7 +97,7 @@ class MCD:
         logger.info(f"IMC-Folder written to {str(outpath)}")
 
     def _write_tiff(self, acquisitions, prefix, suffix):
-        outpath = Path(self.prefix + suffix)
+        outpath = Path(prefix + suffix)
         if not outpath.exists():
             outpath.mkdir(exist_ok=True)
         for ac_id in acquisitions.keys():
