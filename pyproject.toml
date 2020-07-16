@@ -32,6 +32,27 @@ requires = [
     "numpy>=1.18.5",
 ]
 
+[tool.pytest.ini_options]
+minversion = "6.0"
+xfail_strict = true
+testpaths = [
+    "tests",
+]
+
+[tool.black]
+line-length = 90
+target-version = ['py38']
+exclude = '''
+(
+  /(
+    | \.git
+    | \.venv
+    | build
+    | dist
+  )/
+)
+'''
+
 [build-system]
 requires = ["flit_core >=2,<4"]
 build-backend = "flit_core.buildapi"
