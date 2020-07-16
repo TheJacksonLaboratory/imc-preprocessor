@@ -81,14 +81,12 @@ choose from the following output types:
 Additionally, you can choose the way the output from each step is named.  The
 final names will be: `<output_prefix><*_output_suffix>.aX.label.metal.ext`
 
-```{yaml}
 -   `compensate_output_type`. `null`/`tiff`/`tiffstack`/`text`/`imc`
 -   `pixel_removal_output_type`. `null`/`tiff`/`tiffstack`/`text`/`imc`
 -   `equalization_output_type`. `null`/`tiff`/`tiffstack`/`text`/`imc`
 -   `equalization_output_suffix`. `-equalized`
 -   `compensate_output_suffix`. `-compensated`
 -   `pixel_removal_output_suffix`. `-cleaned`
-```
 
 #### Acqusition and channel options
 
