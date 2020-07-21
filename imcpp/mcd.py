@@ -86,6 +86,7 @@ class MCD:
             imc_ac._data[offset:] = new_data
 
     def _write_imcfolder(self, acquisitions, prefix, suffix):
+        raise NotImplementedError("This is broken")
         logger.debug(f"Saving IMCfolder with prefix:[{prefix}] and suffix:[{suffix}]")
         # TODO:This doesn't utilize acquisitions yet
         outpath = Path(prefix + suffix)
@@ -109,7 +110,7 @@ class MCD:
 
         fmt = "{0}/{1}{2}.a{3}/{1}{2}.a{3}.{4}.{5}.ome.tiff"
         for ac_id, channel_list in acquisitions.items():
-            imc_ac = self._get_acquisition(self.mcd, ac_id)
+            imc_ac = self.acquisitions.get(ac_id)
             for ch_id, metal, label in channel_list:
                 tiff = fmt.format(outpath, prefix, suffix, ac_id, metal, label)
                 iw = imc_ac.get_image_writer(filename=str(tiff), metals=[metal])
@@ -122,7 +123,7 @@ class MCD:
         fmt = "{}{}.a{}.ome.tiff"
         for ac_id in acquisitions.keys():
             tiff = fmt.format(prefix, suffix, ac_id)
-            imc_ac = self._get_acquisition(self.mcd, ac_id)
+            imc_ac = self.acquisitions.get(ac_id)
             iw = imc_ac.get_image_writer(filename=str(tiff))
             iw.save_image(mode="ome", compression=0, dtype=None, bigtiff=False)
             logger.debug(f"{tiff} saved.")
