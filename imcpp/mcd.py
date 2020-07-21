@@ -69,6 +69,10 @@ class MCD:
 
         self.n_acquisitions = len(self.acquisitions)
 
+    def get_xyz_data(self, ac_id):
+        imc_ac = self.acquisitions.get(ac_id)
+        return imc_ac._data[:3]
+
     def get_data(self, ac_id, ch_int=None):
         imc_ac = self.acquisitions.get(ac_id)
         offset = imc_ac._offset
@@ -136,15 +140,22 @@ class MCD:
             logger.debug(f"Creating text data for acquisition {ac_id}...")
             outfile = fmt.format(prefix, suffix, ac_id)
 
-            ch_ids, ch_metals, ch_labels = zip(*channel_list)
+            ch_ids, ch_metals, ch_labels = map(list, zip(*channel_list))
 
+            xyz = self.get_xyz_data(ac_id)
+            xyz = xyz[:].reshape(3, -1).T
+            logger.debug(f"XYZ data size for {ac_id}: {xyz.shape}")
             data = self.get_data(ac_id)[ch_ids]
             _n = data.shape[0]
             data = data[:].reshape(_n, -1).T
+            logger.debug(f"Channel data size for {ac_id}: {data.shape}")
+            logger.debug(f"Merging XYZ data with channel data.")
+            data = np.column_stack((xyz, data))
             size = data.nbytes
 
             metals = [f"{metal}({label})" for _, metal, label in channel_list]
             data = pd.DataFrame(data, columns=["X", "Y", "Z"] + metals)
+            logger.debug(f"Downcasting as much as possible to unsigned integers.")
             data = data.apply(pd.to_numeric, downcast="unsigned", errors="ignore")
             logger.debug(
                 f"Text data formatted. Saving {size//1024//1024}MB now. This may take a while..."
