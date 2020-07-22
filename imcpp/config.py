@@ -11,6 +11,7 @@ from ast import literal_eval
 import numpy as np
 
 from .mcd import MCD
+from .logger import logger
 from .processing import selems
 
 
@@ -37,12 +38,13 @@ class Channel(yaml.YAMLObject):
     label: str
     pixel_removal_neighbors: int = 3
     pixel_removal_selem: np.array = selems.square(3)
+    pixel_removal_iterations: int = 1
 
     def __repr__(self):
         return (
             "{self.__class__.__name__}(id={self.ch_id}, metal={self.metal}, "
             "label={self.label}, pixel_removal_neighbors={self.pixel_removal_neighbors}, "
-            "selem={self.pixel_removal_selem}"
+            "selem={self.pixel_removal_selem}, iterations={self.pixel_removal_iterations}"
         ).format(self=self)
 
 
@@ -92,13 +94,17 @@ class ProcessingOptions(yaml.YAMLObject):
     equalization_output_suffix: typing.Union[None, str] = "-equalized"
     spillover_matrix_file: typing.Union[None, str] = None
 
+    global_pixel_removal_neighbors: typing.Union[None, int] = None
+    global_pixel_removal_selem: typing.Union[None, np.array] = None
+
     def __repr__(self):
         return (
             "%s(file=%s, output_prefix=%s, spillmat_file=%s, "
             "do_compensate=%r, do_pixel_removal=%r, do_equalization=%r, "
             "compensation_output_type=%r, pixel_removal_output_type=%r, equalization_output_type=%r, "
             "compensation_output_suffix=%r, pixel_removal_output_suffix=%r, equalization_output_suffix=%r, "
-            "pixel_removal_method=%r, acquisitions=%r)"
+            "pixel_removal_method=%r, global_pixel_removal_neighbors=%r, global_pixel_removal_selem=%r, "
+            "acquisitions=%r)"
         ) % (
             self.__class__.__name__,
             self.mcdpath,
@@ -114,6 +120,8 @@ class ProcessingOptions(yaml.YAMLObject):
             self.pixel_removal_output_suffix,
             self.equalization_output_suffix,
             self.pixel_removal_method,
+            self.global_pixel_removal_neighbors,
+            self.global_pixel_removal_selem,
             self.acquisitions,
         )
 
@@ -137,6 +145,18 @@ def generate_options_from_mcd(mcd_file):
         equalization_output_type="tiff",
     )
 
+    return options
+
+
+def change_pixel_removal_iterations_in_bulk(options, label, iterations):
+    logger.info(
+        f"Attempting to change pixel removal iterations of all channels matching {label} to {iterations}."
+    )
+    for ac in options.acquisitions:
+        for ch in ac.channels:
+            if label.lower() in ch.label.lower():
+                ch.pixel_removal_iterations = iterations
+                logger.debug(f"Modifying channel {ch.metal}:{ch.label}.")
     return options
 
 
