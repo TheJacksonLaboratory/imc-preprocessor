@@ -149,7 +149,9 @@ def generate_options_from_mcd(mcd_file):
 
 
 def change_pixel_removal_iterations_in_bulk(options, label, iterations):
-    logger.info(f"Attempting to change pixel removal iterations of all channels matching {label} to {iterations}.")
+    logger.info(
+        f"Attempting to change pixel removal iterations of all channels matching {label} to {iterations}."
+    )
     for ac in options.acquisitions:
         for ch in ac.channels:
             if label.lower() in ch.label.lower():

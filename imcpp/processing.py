@@ -84,10 +84,7 @@ def equalize(img_stack, adaptive=False):
     return equalized
 
 
-pixel_removal_functions = {
-    "conway": conway,
-    "tophat": tophat
-}
+pixel_removal_functions = {"conway": conway, "tophat": tophat}
 
 
 def run_compensation(mcd, options):
@@ -98,9 +95,7 @@ def run_compensation(mcd, options):
         "file will be saved."
     )
     if options.spillover_matrix_file:
-        logger.info(
-            f"Using provided spillover matrix {options.spillover_matrix_file}"
-        )
+        logger.info(f"Using provided spillover matrix {options.spillover_matrix_file}")
     spillmat_raw = load_spillmat(options.spillover_matrix_file)
 
     for ac_options in options.acquisitions:
@@ -137,7 +132,6 @@ def run_pixel_removal(mcd, options):
         return
     method_func = pixel_removal_functions[method]
 
-
     global_threshold, global_selem = None, None
     if options.global_pixel_removal_neighbors is not None:
         global_threshold = options.global_pixel_removal_neighbors
@@ -154,10 +148,16 @@ def run_pixel_removal(mcd, options):
             clean = mcd.get_data(ac_id, ch_int=ch_id)
 
             logger.debug(f". cleaning acquisition/channel {ac_id}/{ch_opts.metal}.")
-            selem = global_selem if global_selem is not None else ch_opts.pixel_removal_selem
+            selem = (
+                global_selem if global_selem is not None else ch_opts.pixel_removal_selem
+            )
             params = dict(selem=selem)
             if method == "conway":
-                params["threshold"] = global_threshold if global_threshold is not None else ch_opts.pixel_removal_neighbors
+                params["threshold"] = (
+                    global_threshold
+                    if global_threshold is not None
+                    else ch_opts.pixel_removal_neighbors
+                )
 
             for k in range(ch_opts.pixel_removal_iterations):
                 logger.debug(

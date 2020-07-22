@@ -12,7 +12,9 @@ from .config import *
 
 def run_config(args):
     options = generate_options_from_mcd(args.mcd)
-    options = change_pixel_removal_iterations_in_bulk(options, "DNA", args.dna_channel_iterations)
+    options = change_pixel_removal_iterations_in_bulk(
+        options, "DNA", args.dna_channel_iterations
+    )
 
     if args.config_output:
         outfile = args.config_output
@@ -86,7 +88,7 @@ def construct_parser():
         help=(
             "Use this to quickly modify the number of pixel removal iterations "
             "of all channels with 'DNA' (case insensitive)"
-        )
+        ),
     )
     configer.set_defaults(run_func=run_config)
 
