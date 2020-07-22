@@ -128,7 +128,7 @@ def run_pixel_removal(mcd, options):
     logger.info("Running pixel removal")
 
     method = options.pixel_removal_method
-    if method is not in pixel_removal_functions:
+    if method not in pixel_removal_functions:
         logger.error(
             f"Pixel removal function [{method}] is not in "
             f"allowed methods [{list(pixel_removal_functions.keys())}]."

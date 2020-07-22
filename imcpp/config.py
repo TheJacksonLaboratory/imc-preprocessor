@@ -11,6 +11,7 @@ from ast import literal_eval
 import numpy as np
 
 from .mcd import MCD
+from .logger import logger
 from .processing import selems
 
 
@@ -149,10 +150,11 @@ def generate_options_from_mcd(mcd_file):
 
 def change_pixel_removal_iterations_in_bulk(options, label, iterations):
     logger.info(f"Attempting to change pixel removal iterations of all channels matching {label} to {iterations}.")
-    for ac in options.acqusitions:
-        for ch in ac:
+    for ac in options.acquisitions:
+        for ch in ac.channels:
             if label.lower() in ch.label.lower():
-                ch["pixel_removal_iterations"] = iterations
+                ch.pixel_removal_iterations = iterations
+                logger.debug(f"Modifying channel {ch.metal}:{ch.label}.")
     return options
 
 

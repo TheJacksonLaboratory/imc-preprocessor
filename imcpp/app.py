@@ -12,9 +12,7 @@ from .config import *
 
 def run_config(args):
     options = generate_options_from_mcd(args.mcd)
-    print(options)
     options = change_pixel_removal_iterations_in_bulk(options, "DNA", args.dna_channel_iterations)
-    print(options)
 
     if args.config_output:
         outfile = args.config_output
