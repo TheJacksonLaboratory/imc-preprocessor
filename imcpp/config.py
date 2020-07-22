@@ -37,12 +37,13 @@ class Channel(yaml.YAMLObject):
     label: str
     pixel_removal_neighbors: int = 3
     pixel_removal_selem: np.array = selems.square(3)
+    pixel_removal_iterations: int = 1
 
     def __repr__(self):
         return (
             "{self.__class__.__name__}(id={self.ch_id}, metal={self.metal}, "
             "label={self.label}, pixel_removal_neighbors={self.pixel_removal_neighbors}, "
-            "selem={self.pixel_removal_selem}"
+            "selem={self.pixel_removal_selem}, iterations={self.pixel_removal_iterations}"
         ).format(self=self)
 
 

@@ -84,6 +84,12 @@ def equalize(img_stack, adaptive=False):
     return equalized
 
 
+pixel_removal_functions = {
+    "conway": conway,
+    "tophat": tophat
+}
+
+
 def run_compensation(mcd, options):
     logger.info("Running compensation")
     logger.debug(
@@ -121,6 +127,17 @@ def run_compensation(mcd, options):
 def run_pixel_removal(mcd, options):
     logger.info("Running pixel removal")
 
+    method = options.pixel_removal_method
+    if method is not in pixel_removal_functions:
+        logger.error(
+            f"Pixel removal function [{method}] is not in "
+            f"allowed methods [{list(pixel_removal_functions.keys())}]."
+        )
+        logger.warn("Proceeding without pixel removal!")
+        return
+    method_func = pixel_removal_functions[method]
+
+
     global_threshold, global_selem = None, None
     if options.global_pixel_removal_neighbors is not None:
         global_threshold = options.global_pixel_removal_neighbors
@@ -129,13 +146,12 @@ def run_pixel_removal(mcd, options):
         global_selem = options.global_pixel_removal_selem
         logger.debug("Will use global pixel removal selem")
 
-    method = options.pixel_removal_method
     for ac_options in options.acquisitions:
         ac_id = ac_options.acquisition_id
 
         for ch_opts in ac_options.channels:
             ch_id = ch_opts.ch_id
-            ch = mcd.get_data(ac_id, ch_int=ch_id)
+            clean = mcd.get_data(ac_id, ch_int=ch_id)
 
             logger.debug(f". cleaning acquisition/channel {ac_id}/{ch_opts.metal}.")
             selem = global_selem if global_selem is not None else ch_opts.pixel_removal_selem
@@ -143,10 +159,14 @@ def run_pixel_removal(mcd, options):
             if method == "conway":
                 params["threshold"] = global_threshold if global_threshold is not None else ch_opts.pixel_removal_neighbors
 
-            logger.debug(f"Running {method}({ch}, {', '.join('='.join(params.items()))})")
-            cleaned = eval(f"{method}(ch, **params)")
+            for k in range(ch_opts.pixel_removal_iterations):
+                logger.debug(
+                    f".. iteration {k} using method {method} with parameters "
+                    "{', '.join('='.join(params.items()))}"
+                )
+                clean = method_func(clean, **params)
 
-            mcd.set_data(cleaned, ac_id, ch_int=ch_id)
+            mcd.set_data(clean, ac_id, ch_int=ch_id)
 
     if options.pixel_removal_output_type:
         logger.info("Saving pixel removal results.")
