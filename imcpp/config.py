@@ -92,13 +92,17 @@ class ProcessingOptions(yaml.YAMLObject):
     equalization_output_suffix: typing.Union[None, str] = "-equalized"
     spillover_matrix_file: typing.Union[None, str] = None
 
+    global_pixel_removal_neighbors: typing.Union[None, int] = None
+    global_pixel_removal_selem: typing.Union[None, np.array] = None
+
     def __repr__(self):
         return (
             "%s(file=%s, output_prefix=%s, spillmat_file=%s, "
             "do_compensate=%r, do_pixel_removal=%r, do_equalization=%r, "
             "compensation_output_type=%r, pixel_removal_output_type=%r, equalization_output_type=%r, "
             "compensation_output_suffix=%r, pixel_removal_output_suffix=%r, equalization_output_suffix=%r, "
-            "pixel_removal_method=%r, acquisitions=%r)"
+            "pixel_removal_method=%r, global_pixel_removal_neighbors=%r, global_pixel_removal_selem=%r, "
+            "acquisitions=%r)"
         ) % (
             self.__class__.__name__,
             self.mcdpath,
@@ -114,6 +118,8 @@ class ProcessingOptions(yaml.YAMLObject):
             self.pixel_removal_output_suffix,
             self.equalization_output_suffix,
             self.pixel_removal_method,
+            self.global_pixel_removal_neighbors,
+            self.global_pixel_removal_selem,
             self.acquisitions,
         )
 

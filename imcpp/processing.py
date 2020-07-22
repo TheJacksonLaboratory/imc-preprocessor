@@ -84,84 +84,115 @@ def equalize(img_stack, adaptive=False):
     return equalized
 
 
+def run_compensation(mcd, options):
+    logger.info("Running compensation")
+    logger.debug(
+        "Note that all channels of the aquisition to be utilized during the "
+        "compensation calculation but only those specified in the config "
+        "file will be saved."
+    )
+    if options.spillover_matrix_file:
+        logger.info(
+            f"Using provided spillover matrix {options.spillover_matrix_file}"
+        )
+    spillmat_raw = load_spillmat(options.spillover_matrix_file)
+
+    for ac_options in options.acquisitions:
+        ac_id = ac_options.acquisition_id
+        logger.debug(f". compensating acquisition {ac_id}.")
+        spillmat = align_spillmat(spillmat_raw, mcd.channel_metals[ac_id])
+        uncomp = mcd.get_data(ac_id)
+        comp = compensate(uncomp, spillmat.values)
+        mcd.set_data(comp, ac_id)
+
+    if options.compensate_output_type:
+        logger.info("Saving compensation results.")
+        acquisitions = options.export_acquisitions()
+        mcd.save(
+            acquisitions,
+            options.compensate_output_type,
+            prefix=options.output_prefix,
+            suffix=options.compensate_output_suffix,
+        )
+
+    logger.info("Compensation complete.")
+
+
+def run_pixel_removal(mcd, options):
+    logger.info("Running pixel removal")
+
+    global_threshold, global_selem = None, None
+    if options.global_pixel_removal_neighbors is not None:
+        global_threshold = options.global_pixel_removal_neighbors
+        logger.debug(f"Will use global pixel removal threshold of {global_threshold}")
+    if options.global_pixel_removal_selem is not None:
+        global_selem = options.global_pixel_removal_selem
+        logger.debug("Will use global pixel removal selem")
+
+    method = options.pixel_removal_method
+    for ac_options in options.acquisitions:
+        ac_id = ac_options.acquisition_id
+
+        for ch_opts in ac_options.channels:
+            ch_id = ch_opts.ch_id
+            ch = mcd.get_data(ac_id, ch_int=ch_id)
+
+            logger.debug(f". cleaning acquisition/channel {ac_id}/{ch_opts.metal}.")
+            selem = global_selem if global_selem is not None else ch_opts.pixel_removal_selem
+            params = dict(selem=selem)
+            if method == "conway":
+                params["threshold"] = global_threshold if global_threshold is not None else ch_opts.pixel_removal_neighbors
+
+            logger.debug(f"Running {method}({ch}, {', '.join('='.join(params.items()))})")
+            cleaned = eval(f"{method}(ch, **params)")
+
+            mcd.set_data(cleaned, ac_id, ch_int=ch_id)
+
+    if options.pixel_removal_output_type:
+        logger.info("Saving pixel removal results.")
+        acquisitions = options.export_acquisitions()
+        mcd.save(
+            acquisitions,
+            options.pixel_removal_output_type,
+            prefix=options.output_prefix,
+            suffix=options.pixel_removal_output_suffix,
+        )
+
+    logger.info("Pixel removal complete.")
+
+
+def run_equalization(mcd, options):
+    logger.info("Running equalization")
+
+    for ac_options in options.acquisitions:
+        ac_id = ac_options.acquisition_id
+        logger.debug(f". equalizing acquisition {ac_id}.")
+        unequalized = mcd.get_data(ac_id)
+        equalized = equalize(unequalized, adaptive=False)
+        mcd.set_data(equalized, ac_id)
+
+    if options.equalization_output_type:
+        logger.info("Saving equalization results.")
+        acquisitions = options.export_acquisitions()
+        mcd.save(
+            acquisitions,
+            options.equalization_output_type,
+            prefix=options.output_prefix,
+            suffix=options.equalization_output_suffix,
+        )
+
+    logger.info("Equalization complete.")
+
+
 def process(options):
     mcd = MCD(options.mcdpath)
     mcd.load_mcd()
 
-    # Do compensation
     if options.do_compensate:
-        logger.info("Running compensation")
-        logger.debug(
-            "Note that all channels of the aquisition to be utilized during the "
-            "compensation calculation but only those specified in the config "
-            "file will be saved."
-        )
-        if options.spillover_matrix_file:
-            logger.info(
-                f"Using provided spillover matrix {options.spillover_matrix_file}"
-            )
-        spillmat_raw = load_spillmat(options.spillover_matrix_file)
+        run_compensation(mcd, options)
 
-        for ac_options in options.acquisitions:
-            ac_id = ac_options.acquisition_id
-            logger.debug(f". compensating acquisition {ac_id}.")
-            spillmat = align_spillmat(spillmat_raw, mcd.channel_metals[ac_id])
-            uncomp = mcd.get_data(ac_id)
-            comp = compensate(uncomp, spillmat.values)
-            mcd.set_data(comp, ac_id)
-
-        if options.compensate_output_type:
-            logger.info("Saving compensation results.")
-            acquisitions = options.export_acquisitions()
-            mcd.save(
-                acquisitions,
-                options.compensate_output_type,
-                prefix=options.output_prefix,
-                suffix=options.compensate_output_suffix,
-            )
-
-    # Do pixel removal
     if options.do_pixel_removal:
-        logger.info("Running pixel removal")
-        method = options.pixel_removal_method
-        for ac_options in options.acquisitions:
-            ac_id = ac_options.acquisition_id
-            for ch_opts in ac_options.channels:
-                ch_id = ch_opts.ch_id
-                ch = mcd.get_data(ac_id, ch_int=ch_id)
-                params = dict(selem=ch_opts.pixel_removal_selem)
-                logger.debug(f". cleaning acquisition/channel {ac_id}/{ch_opts.metal}.")
-                if method == "conway":
-                    params["threshold"] = ch_opts.pixel_removal_neighbors
-                logger.debug(f"Running {method}(ch, **params)")
-                cleaned = eval(f"{method}(ch, **params)")
-                mcd.set_data(cleaned, ac_id, ch_int=ch_id)
+        run_pixel_removal(mcd, options)
 
-        if options.pixel_removal_output_type:
-            logger.info("Saving pixel removal results.")
-            acquisitions = options.export_acquisitions()
-            mcd.save(
-                acquisitions,
-                options.pixel_removal_output_type,
-                prefix=options.output_prefix,
-                suffix=options.pixel_removal_output_suffix,
-            )
-
-    # Do equalization
     if options.do_equalization:
-        logger.info("Running equalization")
-        for ac_options in options.acquisitions:
-            ac_id = ac_options.acquisition_id
-            logger.debug(f". equalizing acquisition {ac_id}.")
-            unequalized = mcd.get_data(ac_id)
-            equalized = equalize(unequalized, adaptive=False)
-            mcd.set_data(equalized, ac_id)
-        if options.equalization_output_type:
-            logger.info("Saving equalization results.")
-            acquisitions = options.export_acquisitions()
-            mcd.save(
-                acquisitions,
-                options.equalization_output_type,
-                prefix=options.output_prefix,
-                suffix=options.equalization_output_suffix,
-            )
+        run_equalization(mcd, options)
