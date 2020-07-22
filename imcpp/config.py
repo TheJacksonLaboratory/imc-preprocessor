@@ -147,6 +147,15 @@ def generate_options_from_mcd(mcd_file):
     return options
 
 
+def change_pixel_removal_iterations_in_bulk(options, label, iterations):
+    logger.info(f"Attempting to change pixel removal iterations of all channels matching {label} to {iterations}.")
+    for ac in options.acqusitions:
+        for ch in ac:
+            if label.lower() in ch.label.lower():
+                ch["pixel_removal_iterations"] = iterations
+    return options
+
+
 def load_config_file(config_path: Path) -> ProcessingOptions:
     with open(config_path, "r") as fin:
         options = yaml.load(fin, Loader=yaml.Loader)
