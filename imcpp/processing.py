@@ -52,7 +52,7 @@ def compensate(img_stack, spillmat):
     comp_ = img_stack @ np.linalg.inv(spillmat.T)
     comp_ = np.round(np.clip(comp_, 0, comp_.max())).astype(np.uint16)
     if swapped:
-        comp_ = np.moveaxis(img_stack, 2, 0)
+        comp_ = np.moveaxis(comp_, 2, 0)
     return comp_
 
 
@@ -87,6 +87,20 @@ def equalize(img_stack, adaptive=False):
 pixel_removal_functions = {"conway": conway, "tophat": tophat}
 
 
+def report_maxima(mcd, ac_options):
+    ac_id = ac_options.acquisition_id
+    for ch_opts in ac_options.channels:
+        ch_id = ch_opts.ch_id
+        label = ch_opts.label
+        metal = ch_opts.metal
+        ch = mcd.get_data(ac_id, ch_int=ch_id)
+        m = np.max(ch)
+        if m > 1e5:
+            logger.warn(f"Channel {acid}/{ch_id}:{label}:{metal} maximum value is {m}")
+        else:
+            logger.debug(f"Channel {ch_id}:{label}:{metal} maximum value: {m}")
+
+
 def run_compensation(mcd, options):
     logger.info("Running compensation")
     logger.debug(
@@ -99,6 +113,7 @@ def run_compensation(mcd, options):
     spillmat_raw = load_spillmat(options.spillover_matrix_file)
 
     for ac_options in options.acquisitions:
+        report_maxima(mcd, ac_options)
         ac_id = ac_options.acquisition_id
         logger.debug(f". compensating acquisition {ac_id}.")
         spillmat = align_spillmat(spillmat_raw, mcd.channel_metals[ac_id])
@@ -141,6 +156,7 @@ def run_pixel_removal(mcd, options):
         logger.debug("Will use global pixel removal selem")
 
     for ac_options in options.acquisitions:
+        report_maxima(mcd, ac_options)
         ac_id = ac_options.acquisition_id
 
         for ch_opts in ac_options.channels:
@@ -161,8 +177,8 @@ def run_pixel_removal(mcd, options):
 
             for k in range(ch_opts.pixel_removal_iterations):
                 logger.debug(
-                    f".. iteration {k} using method {method} with parameters "
-                    "{', '.join('='.join(params.items()))}"
+                    f".. iteration {k} using method '{method}' with parameters "
+                    f"'threshold={params['threshold']}'"
                 )
                 clean = method_func(clean, **params)
 
@@ -185,6 +201,7 @@ def run_equalization(mcd, options):
     logger.info("Running equalization")
 
     for ac_options in options.acquisitions:
+        report_maxima(mcd, ac_options)
         ac_id = ac_options.acquisition_id
         logger.debug(f". equalizing acquisition {ac_id}.")
         unequalized = mcd.get_data(ac_id)
