@@ -8,6 +8,7 @@ import pandas as pd
 from imctools.io.mcdparser import McdParser
 from imctools.io.abstractparserbase import AcquisitionError
 from imctools.io.imcfolderwriter import ImcFolderWriter
+from xml.etree import cElementTree as ElementTree
 
 from .logger import logger
 
@@ -32,6 +33,8 @@ class MCD:
             imc_ac = self._get_acquisition(self.mcd, ac_id)
             if imc_ac is None:
                 continue
+            #imc_ac.original_metadata = ElementTree.fromstring(imc_ac.original_metadata)
+            #imc_ac.original_metadata = imc_ac.original_metadata.decode("ascii")
             self.acquisitions[ac_id] = imc_ac
         logger.info(f"{len(self.acquisitions)} acquisitions loaded.")
 

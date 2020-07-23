@@ -30,11 +30,14 @@ requires = [
     "scikit-image>=0.17.2",
     "scipy>=1.4.1",
     "numpy>=1.18.5",
+    "imctools==1.0.7",
+    "tifffile==2019.7.26",
 ]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
 xfail_strict = true
+filterwarnings = "ignore:.*imctools 1.x.*:DeprecationWarning"
 testpaths = [
     "tests",
 ]
